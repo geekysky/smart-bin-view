@@ -101,6 +101,25 @@
   }
 }
 
+/* Waste bin fill level status colors */
+@layer utilities {
+  .bg-bin-empty {
+    @apply bg-green-500;
+  }
+  .bg-bin-medium {
+    @apply bg-yellow-500;
+  }
+  .bg-bin-full {
+    @apply bg-orange-500;
+  }
+  .bg-bin-critical {
+    @apply bg-red-500;
+  }
+  .animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
 /* Custom styles for the map */
 .map-container {
   width: 100%;
@@ -120,4 +139,13 @@
 /* Make progress bars thicker */
 progress {
   height: 12px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }

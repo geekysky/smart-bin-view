@@ -6,7 +6,7 @@ import WasteBinMap from '@/components/WasteBinMap';
 import WasteBinTable from '@/components/WasteBinTable';
 import WasteBinDetail from '@/components/WasteBinDetail';
 import WasteBinStats from '@/components/WasteBinStats';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from 'sonner';
 
 const Index = () => {
   const [bins] = useState<WasteBin[]>(wasteBinData);
@@ -21,7 +21,7 @@ const Index = () => {
       <header className="text-center mb-8">
         <h1 className="text-3xl font-bold text-primary">Smart Waste Management Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Monitor waste bin fill levels and plan efficient collection routes
+          Monitor waste bin fill levels in Pune, India and plan efficient collection routes
         </p>
       </header>
 
@@ -42,7 +42,7 @@ const Index = () => {
         onSelectBin={handleSelectBin} 
       />
 
-      <Toaster />
+      <Toaster position="top-right" />
     </div>
   );
 };

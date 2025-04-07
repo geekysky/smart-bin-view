@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WasteBin, getBinFillStatus } from '@/types/wastebin';
 import { MapPin, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 type WasteBinMapProps = {
   bins: WasteBin[];
@@ -16,6 +16,7 @@ const WasteBinMap: React.FC<WasteBinMapProps> = ({ bins, selectedBin, onSelectBi
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapInstanceRef = useRef<any>(null);
 
   const handleMapboxTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMapboxToken(e.target.value);
@@ -35,25 +36,28 @@ const WasteBinMap: React.FC<WasteBinMapProps> = ({ bins, selectedBin, onSelectBi
 
     const loadMapbox = async () => {
       try {
+        // Dynamically import mapbox-gl
         const mapboxgl = await import('mapbox-gl');
-        import('mapbox-gl/dist/mapbox-gl.css');
+        await import('mapbox-gl/dist/mapbox-gl.css');
 
         mapboxgl.default.accessToken = mapboxToken;
 
+        // Create the map centered on Pune, India
         const map = new mapboxgl.default.Map({
           container: mapRef.current!,
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [-73.9855, 40.7580], // NYC center
-          zoom: 12
+          center: [73.8567, 18.5204], // Pune, India center coordinates
+          zoom: 11
         });
+
+        mapInstanceRef.current = map;
 
         map.addControl(new mapboxgl.default.NavigationControl(), 'top-right');
 
         map.on('load', () => {
           setMapLoaded(true);
-          toast({
-            title: "Map loaded successfully",
-            description: "The map is now ready to use.",
+          toast.success("Map loaded successfully", {
+            description: "The map is now showing waste bins in Pune, India.",
           });
 
           // Add markers for each bin
@@ -95,12 +99,19 @@ const WasteBinMap: React.FC<WasteBinMapProps> = ({ bins, selectedBin, onSelectBi
           });
         });
 
+        // Fly to the selected bin when it changes
+        if (selectedBin && mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo({
+            center: [selectedBin.location.longitude, selectedBin.location.latitude],
+            zoom: 14,
+            duration: 1500
+          });
+        }
+
         return () => map.remove();
       } catch (error) {
         console.error('Failed to load map:', error);
-        toast({
-          variant: "destructive",
-          title: "Map failed to load",
+        toast.error("Map failed to load", {
           description: "Please check your Mapbox token and try again.",
         });
       }
@@ -109,14 +120,25 @@ const WasteBinMap: React.FC<WasteBinMapProps> = ({ bins, selectedBin, onSelectBi
     if (mapboxToken) {
       loadMapbox();
     }
-  }, [bins, mapboxToken, selectedBin, onSelectBin, mapLoaded]);
+  }, [bins, mapboxToken, mapLoaded, onSelectBin]);
+
+  // Effect to handle flying to the selected bin
+  useEffect(() => {
+    if (selectedBin && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo({
+        center: [selectedBin.location.longitude, selectedBin.location.latitude],
+        zoom: 14,
+        duration: 1500
+      });
+    }
+  }, [selectedBin]);
 
   return (
     <Card className="col-span-1 h-[600px] lg:col-span-2">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center">
           <MapPin className="mr-2 h-5 w-5" />
-          Waste Bin Locations
+          Waste Bin Locations in Pune
         </CardTitle>
       </CardHeader>
       <CardContent>
