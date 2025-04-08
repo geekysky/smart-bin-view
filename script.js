@@ -1,3 +1,4 @@
+
 // Global variables
 let map;
 let selectedBin = null;
