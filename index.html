@@ -1,26 +1,102 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>smart-bin-view</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Management Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Waste Management Dashboard</h1>
+            <p class="subtitle">Monitor waste bin fill levels in Pune, India and plan efficient collection routes</p>
+        </header>
 
-    <meta property="og:title" content="smart-bin-view" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>Total Bins</h3>
+                <p id="total-bins">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Critical Fill Level</h3>
+                <p id="critical-bins">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Operational</h3>
+                <p id="operational-bins">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Avg. Fill Level</h3>
+                <p id="avg-fill-level">0%</p>
+            </div>
+        </div>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        <div class="map-detail-container">
+            <div class="map-container">
+                <div id="map-input">
+                    <label for="mapbox-token">Mapbox Token:</label>
+                    <input type="password" id="mapbox-token" placeholder="Enter your Mapbox token">
+                    <button id="load-map">Load Map</button>
+                </div>
+                <div id="map"></div>
+            </div>
+            <div class="bin-detail-container">
+                <div id="bin-detail">
+                    <h2>Bin Details</h2>
+                    <p class="select-prompt">Select a bin from the map or table to view details</p>
+                    <div id="bin-info" class="hidden">
+                        <h3 id="bin-name"></h3>
+                        <p id="bin-address"></p>
+                        <div class="detail-row">
+                            <span>Status:</span>
+                            <span id="bin-status"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Type:</span>
+                            <span id="bin-type"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Fill Level:</span>
+                            <div class="progress-container">
+                                <div id="bin-fill-level-bar" class="progress-bar"></div>
+                                <span id="bin-fill-level-text"></span>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <span>Last Updated:</span>
+                            <span id="bin-last-updated"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        <div class="table-container">
+            <h2>Waste Bin Status</h2>
+            <table id="bins-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Fill Level</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="bins-table-body">
+                    <!-- Table rows will be added here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
 </html>
