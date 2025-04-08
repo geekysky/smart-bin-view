@@ -1,4 +1,3 @@
-
 // Global variables
 let map;
 let selectedBin = null;
@@ -6,8 +5,6 @@ let markers = [];
 
 // DOM elements
 const mapElement = document.getElementById('map');
-const mapboxTokenInput = document.getElementById('mapbox-token');
-const loadMapButton = document.getElementById('load-map');
 const binsTableBody = document.getElementById('bins-table-body');
 const binInfo = document.getElementById('bin-info');
 const selectPrompt = document.querySelector('.select-prompt');
@@ -35,66 +32,56 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate table
     populateTable();
     
-    // Set up event listeners
-    loadMapButton.addEventListener('click', initializeMap);
-    
-    // Check if there's a token in localStorage
-    const savedToken = localStorage.getItem('mapboxToken');
-    if (savedToken) {
-        mapboxTokenInput.value = savedToken;
-        // Auto-load map if token exists
-        initializeMap();
-    }
+    // Initialize map
+    initializeMap();
 });
 
-// Initialize the map
+// Initialize the map using Leaflet
 function initializeMap() {
-    const token = mapboxTokenInput.value.trim();
-    
-    if (!token) {
-        alert('Please enter a valid Mapbox token');
-        return;
-    }
-    
-    // Save token to localStorage
-    localStorage.setItem('mapboxToken', token);
-    
-    // Set Mapbox access token
-    mapboxgl.accessToken = token;
-    
     try {
-        // Initialize the map
-        map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [73.8567, 18.5204], // Pune, India
-            zoom: 11
-        });
+        // Initialize the map centered on Pune, India
+        map = L.map('map').setView([18.5204, 73.8567], 12);
+        
+        // Add the OpenStreetMap tile layer (free to use)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
         
         // Add navigation controls
-        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        L.control.scale().addTo(map);
         
-        // When map loads, add markers
-        map.on('load', function() {
-            addMapMarkers();
-        });
-        
-        // Hide the input form when map is loaded
-        document.getElementById('map-input').style.display = 'none';
+        // Add markers for each bin
+        addMapMarkers();
     } catch (error) {
         console.error('Error initializing map:', error);
-        alert('Error initializing map. Please check your token and try again.');
+        alert('Error initializing map. Please try refreshing the page.');
     }
 }
 
 // Add markers to the map
 function addMapMarkers() {
-    // Clear existing markers
-    markers.forEach(marker => marker.remove());
+    // Clear existing markers from array
+    markers.forEach(marker => {
+        if (marker) {
+            marker.remove();
+        }
+    });
     markers = [];
     
     // Add new markers
     wasteBinData.forEach(bin => {
+        // Create custom icon based on fill level
+        const fillStatusClass = getBinFillColor(bin.fillLevel);
+        const iconHtml = `<div class="custom-marker ${fillStatusClass} ${bin.fillLevel >= 70 ? 'animate-pulse-slow' : ''}"></div>`;
+        
+        const customIcon = L.divIcon({
+            html: iconHtml,
+            className: 'custom-div-icon',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+        
         // Create popup content
         const popupContent = `
             <div class="map-popup">
@@ -109,37 +96,21 @@ function addMapMarkers() {
             </div>
         `;
         
-        // Create popup
-        const popup = new mapboxgl.Popup({
-            offset: 25
-        }).setHTML(popupContent);
+        // Create marker with popup
+        const marker = L.marker([bin.location.latitude, bin.location.longitude], {
+            icon: customIcon
+        }).addTo(map);
         
-        // Create custom marker element
-        const markerElement = document.createElement('div');
-        markerElement.className = `marker ${getBinFillColor(bin.fillLevel)}`;
-        markerElement.style.width = '20px';
-        markerElement.style.height = '20px';
-        markerElement.style.borderRadius = '50%';
-        markerElement.style.cursor = 'pointer';
+        // Add popup to marker
+        marker.bindPopup(popupContent);
         
-        // Add pulse animation to markers with high fill levels
-        if (bin.fillLevel >= 70) {
-            markerElement.classList.add('animate-pulse-slow');
-        }
-        
-        // Create and add marker
-        const marker = new mapboxgl.Marker(markerElement)
-            .setLngLat([bin.location.longitude, bin.location.latitude])
-            .setPopup(popup)
-            .addTo(map);
+        // Add click event to marker
+        marker.on('click', () => {
+            selectBin(bin);
+        });
         
         // Store marker for later reference
         markers.push(marker);
-        
-        // Add click event to marker
-        markerElement.addEventListener('click', () => {
-            selectBin(bin);
-        });
     });
 }
 
@@ -192,19 +163,38 @@ function selectBin(bin) {
     } else {
         selectedBin = bin;
         showDetails(bin);
+        
+        // Update markers to highlight selected bin
+        wasteBinData.forEach((dataBin, index) => {
+            if (markers[index]) {
+                if (dataBin.id === bin.id) {
+                    // Highlight selected marker
+                    const selectedIcon = L.divIcon({
+                        html: `<div class="custom-marker ${getBinFillColor(dataBin.fillLevel)} selected-marker ${dataBin.fillLevel >= 70 ? 'animate-pulse-slow' : ''}"></div>`,
+                        className: 'custom-div-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                    markers[index].setIcon(selectedIcon);
+                    
+                    // Center map on selected bin
+                    map.setView([dataBin.location.latitude, dataBin.location.longitude], 14);
+                } else {
+                    // Reset other markers
+                    const normalIcon = L.divIcon({
+                        html: `<div class="custom-marker ${getBinFillColor(dataBin.fillLevel)} ${dataBin.fillLevel >= 70 ? 'animate-pulse-slow' : ''}"></div>`,
+                        className: 'custom-div-icon',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+                    markers[index].setIcon(normalIcon);
+                }
+            }
+        });
     }
     
     // Refresh table to update selection
     populateTable();
-    
-    // Center map on selected bin
-    if (map && selectedBin) {
-        map.flyTo({
-            center: [selectedBin.location.longitude, selectedBin.location.latitude],
-            zoom: 15,
-            duration: 1000
-        });
-    }
 }
 
 // Show bin details
